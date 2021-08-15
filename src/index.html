@@ -1,0 +1,58 @@
+<!DOCTYPE html><html><head><title>Alien Spaceship by Johan Strydom</title></head><body>
+<canvas id="gameCanvas" class="game" tabindex="1" onblur="return this.focus();" width="1024" height="576"></canvas>
+<script type="text/javascript">
+var gCanvas = document.getElementById("gameCanvas");
+
+var iCanvasWidth = 1024;
+gCanvas.width = iCanvasWidth;
+	
+var iCanvasHeight = 576;
+gCanvas.height = iCanvasHeight;
+
+var iMaxStarRadius = 3;
+
+var gCtx = gCanvas.getContext("2d");
+
+var rndx = Array.from({length: 1000}, () => Math.floor(Math.random() * iCanvasWidth));
+var rndy = Array.from({length: 1000}, () => Math.floor(Math.random() * iCanvasHeight));
+var rndr = Array.from({length: 1000}, () => Math.floor(Math.random() * iMaxStarRadius));
+
+var GameDrawCircle = function(x,y,radius){
+	
+	gCtx.save();
+	gCtx.beginPath();
+	
+	gCtx.arc(x, y, radius, 0, 2 * Math.PI);
+	
+	gCtx.strokeStyle =  "#202020";
+	gCtx.stroke();
+	gCtx.fillStyle = "#FFFFFF";
+	gCtx.fill();
+	
+	gCtx.closePath();
+	
+	gCtx.restore();
+}
+
+var GameDrawStars = function(){
+	for(i=0;i<1000;i++){
+		GameDrawCircle(rndx[i],rndy[i],rndr[i]);
+	}
+}
+
+var GameClearCanvas = function(){
+	gCtx.fillStyle = "#000000";				
+	gCtx.fillRect(0,0,iCanvasWidth,iCanvasHeight);
+}
+
+var GameUpdate = function(){
+	GameClearCanvas();
+	GameDrawStars();
+}
+
+//Game Loop
+var intervalId = setInterval(function(){
+	GameUpdate();
+}, 33.33); //Loop about 30 times per second ( 1,000/30 )
+</script>
+</body></html>
