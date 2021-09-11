@@ -1,4 +1,4 @@
-<!DOCTYPE html><html><head><title>Alien Spaceship by Johan Strydom</title><style type="text/css">html,body{ width: 100%; height: 100%; padding:0; margin:0; }</style></head><body>
+<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Alien Spaceship by Johan Strydom</title><style type="text/css">html,body{ width: 100%; height: 100%; padding:0; margin:0; } canvas{	cursor: url(cursor.svg), auto; }</style></head><body>
 <canvas id="gameCanvas" class="game" tabindex="1" onblur="return this.focus();"></canvas>
 <script type="text/javascript">
 
@@ -23,6 +23,7 @@ var Circle2D = function ( options ){
 	_C.strokeStyle = "#202020";
 	_C.fillStyle = "#FFFFFF";
 	_C.lineWidth = "1";
+	_C.lineDash = [];
 	
 	if(typeof options != 'undefined'){
 		
@@ -45,6 +46,10 @@ var Circle2D = function ( options ){
 		if(typeof options.lineWidth != 'undefined'){    
 			_C.lineWidth = options.lineWidth;
 		}
+		
+		if(typeof options.lineDash != 'undefined'){    
+			_C.lineDash = options.lineDash;
+		}
 	}
 	
 	_C.diameter = _C.radius * 2;
@@ -52,13 +57,123 @@ var Circle2D = function ( options ){
 	return _C;
 }
 
+const StarClass = [
+{c1:"#b3ff80",c2:"#0F0"},
+{c1:"#ffd42a",c2:"#ffe680"},
+{c1:"#ff0000",c2:"#ff5555"},
+{c1:"#0055d4",c2:"#2a7fff"},
+{c1:"#7f2aff",c2:"#9955ff"},
+{c1:"#cccccc",c2:"#e6e6e6"},
+];
+
+const PlanetClass = [
+{c1:"#6c5d53",c2:"#483e37"},
+{c1:"#447821",c2:"#2d5016"},
+{c1:"#0088aa",c2:"#006680"},
+{c1:"#a02c5a",c2:"#782144"},
+{c1:"#d4aa00",c2:"#554400"},
+{c1:"#b3b3b3",c2:"#666666"},
+];
+
+var Sun = function( options ){
+	_S = this;
+	
+	_S.position = new Point2D(0,0);
+	
+	_S.angle = 0;
+	
+	_S.health = 100;
+	_S.speed = 0.01;
+	
+	_S.hull = { defence: 1, rockets:-1, lazer:-1, projectiles: 0 };
+	_S.armor = { defence: 1, rockets:-1, lazer:-1, projectiles: 0 };
+	_S.forcefield = { defence: 1, rockets: 0, lazer: 0, projectiles: -1 };
+	_S.rockets = { offence: 1, hull: 1, forcefield: 1, armor: 1 };
+	_S.lazers = { offence: 1, hull: 1, forcefield: 1, armor: 1 };
+	_S.projectiles = { offence: 1, hull: 1, forcefield: 1, armor: 1 };
+	
+	_S.class = 	0;
+	
+	_S.x = function(){
+		return _S.position.x;
+	}
+	
+	_S.y = function(){
+		return _S.position.y;
+	}
+	
+	_S.Draw = function(g){
+		var f = StarClass[_S.class].c1;
+		var s = "";
+		
+		
+		
+		var ctx = g.context;
+		
+		if(_S.angle != 0){
+			ctx.translate(_S.x(),_S.y());
+			//ctx.rotate(rotationDegrees * Math.PI / 180);
+			
+			ctx.rotate(_S.angle * Math.PI / 180);
+			
+		}
+		
+		ctx.shadowColor = StarClass[_S.class].c2;
+		ctx.shadowBlur = 10;
+		
+		 var starCircle = new Circle2D({
+			centre: new Point2D( _S.x()+ 20.069,(_S.y()+20.031) ),
+			radius: 10,
+			strokeStyle: "",
+			fillStyle: StarClass[_S.class].c2,
+		});
+		
+		g.DrawCircle2D( starCircle );
+
+		ctx.shadowBlur = 8;		
+		
+		d = "m" + (_S.x() + 19.984) + " " + (_S.y()+1.2397) + "-0.51366 9.8144a9 9 0 0 0-1.4681 0.22066l-1.5808-5.5413 1.2681 5.625a9 9 0 0 0-5.271 3.945l-5.039-2.8024 4.8705 3.0784a9 9 0 0 0-1.1658 4.0592l-9.8066 0.47852 9.8144 0.51366a9 9 0 0 0 0.22066 1.4681l-5.5407 1.5808 5.6245-1.2681a9 9 0 0 0 3.945 5.2705l-2.8019 5.0395 3.0778-4.8705a9 9 0 0 0 4.0597 1.1658l0.47852 9.8066 0.51315-9.8144a9 9 0 0 0 1.4686-0.22066l1.5808 5.5407-1.2681-5.6245a9 9 0 0 0 5.27-3.945l5.0395 2.8019-4.8705-3.0784a9 9 0 0 0 1.1658-4.0592l9.8066-0.47852-9.8123-0.51366a9 9 0 0 0-0.22014-1.4686l5.5387-1.5803-5.6198 1.2671a9 9 0 0 0-3.947-5.2741l2.7993-5.0343-3.0773 4.869a9 9 0 0 0-4.0607-1.17z";
+		g.DrawPath2D(d,f,s);
+		
+		ctx.shadowColor = "";
+		ctx.shadowBlur = 0;
+		
+		if(_S.angle != 0){
+			ctx.setTransform(1, 0, 0, 1, 0, 0);
+		}
+	}
+	
+}
+
+var Planet = function(options){
+	var _P = this;
+	
+	_P.orbit = null;
+	_P.orb = null;
+	_P.speed = ( Math.random() * 0.25 );
+	_P.location = ( Math.floor( Math.random() * 270 ));
+	_P.step = Math.PI / 180;
+	_P.angle = _P.location * _P.step;
+}
+
+const GameState = {
+	Init: 0,
+	Menu: 1,
+	Start: 2,
+	Run: 3,
+	Paused: 4,
+	Shutdown: 5
+};
+
 function Game(){
 	var _G = this;
 	
+	_G.state = GameState.Init;
+	
 	_G.container = document.body;
 	_G.html = document.documentElement;
-	_G.width = _G.container.offsetWidth;
-	_G.height = _G.container.offsetHeight;
+	_G.width = window.innerWidth;
+	_G.height = window.innerHeight; 
 	_G.fillStyle = "#202020";
 	_G.strokeStyle = "#FFFFFF";
 	_G.id = "gameCanvas";
@@ -87,6 +202,9 @@ function Game(){
 	_G.starCount = 250;
 	_G.starMaxRadius = 3;
 	_G.stars = null;
+	_G.planetCount = Math.floor( Math.random() * 10 );
+	if(_G.planetCount < 4){ _G.planetCount = 4; }
+	_G.planets = null;
 	
 	_G.ClearCanvas = function(){
 	
@@ -100,19 +218,28 @@ function Game(){
 	
 	_G.DrawCircle2D = function( circle ){
 	
-		//console.log({x:circle.centre.x, y:circle.centre.y, r:circle.radius});
-
 		var ctx = _G.context;
 
+		ctx.save();
 		ctx.beginPath();
 		ctx.lineWidth = circle.lineWidth;
 		ctx.arc(circle.centre.x, circle.centre.y, circle.radius, 0, 2 * Math.PI);
+		
+		if(circle.lineDash != []){
+			ctx.setLineDash(circle.lineDash);
+		}
+		
 		ctx.strokeStyle = circle.strokeStyle;
 		ctx.stroke();
-		ctx.fillStyle = circle.fillStyle;
-		ctx.fill();
-		ctx.closePath();
 		
+		if(circle.fillStyle != ""){
+			ctx.fillStyle = circle.fillStyle;
+			ctx.fill();
+		}
+		
+		ctx.setLineDash([]);
+		ctx.closePath();
+		ctx.restore();
 	}
 	
 	_G.DrawPath2D = function(svg,fill,stroke){
@@ -123,22 +250,60 @@ function Game(){
 		
 		var path = new Path2D(svg);
 		
-		ctx.strokeStyle = stroke;
-		ctx.stroke(path);
+		if(stroke != ""){
+			ctx.strokeStyle = stroke;
+			ctx.stroke(path);
+		}
 		
-		ctx.fillStyle = fill;
-		ctx.fill(path);
+		if(fill != ""){
+			ctx.fillStyle = fill;
+			ctx.fill(path);
+		}
 		
 		ctx.closePath();
 		ctx.restore();
 	}
 	
 	_G.Pause = function(){
-	
+		_G.state = GameState.Paused;
 	}
 	
 	_G.Init = function(){
 		_G.GenerateStars();
+		_G.GeneratePlanets();
+		
+		_G.orbit = new Circle2D({
+			centre: new Point2D( _G.centre.x + 20.069, _G.centre.y + 20.031 ),			
+			radius: 60,
+			strokeStyle: "rgba(179,179,179,0.6)",
+			fillStyle: "",
+			lineDash: [5,15],
+		});
+		
+		//_G.orbStep = 2*Math.PI / 360; //increment by 1 degree at a time
+		_G.orbStep = Math.PI / 180; //increment by 1 degree at a time
+		_G.orbi = ( Math.floor( Math.random() * 270 ));
+		
+		_G.orbAngle = _G.orbi * _G.orbStep; //current angle
+		
+		var ox = _G.orbit.centre.x + _G.orbit.radius*Math.cos(_G.orbAngle);
+		var oy = _G.orbit.centre.y + _G.orbit.radius*Math.sin(_G.orbAngle);
+
+		_G.orb = new Circle2D({
+			centre: new Point2D( ox,oy ),
+			radius: 10,
+			strokeStyle: "#CCCCCC",
+			fillStyle: "#CCCCCC",
+		});
+		
+		_G.mainStar = new Sun();
+		_G.mainStar.class = Math.floor( Math.random() * 6 );
+		
+		_G.mainStar.position.x =_G.centre.x;
+		_G.mainStar.position.y = _G.centre.y;
+	
+		if( _G.mainStar.class<0 ){ _G.mainStar.class=0; }
+		if( _G.mainStar.class>5 ){ _G.mainStar.class=0; }
 	}
 
 	_G.GenerateStars = function(){
@@ -149,8 +314,86 @@ function Game(){
 		});
 	}
 	
+	_G.GeneratePlanets = function(){
+		var distance = 120;	
+		
+		_G.planets = Array.from({ length: _G.planetCount }, (p = new Planet()) => {
+			p.orbit = new Circle2D({
+				centre: new Point2D( _G.centre.x + 20.069, _G.centre.y + 20.031 ),			
+				radius: distance,
+				strokeStyle: "rgba(179,179,179,0.6)",
+				fillStyle: "",
+				lineDash: [5,15],
+			});
+			
+			var ox = p.orbit.centre.x + p.orbit.radius*Math.cos(p.angle);
+			var oy = p.orbit.centre.y + p.orbit.radius*Math.sin(p.angle);
+			
+			var pc = Math.floor( Math.random() * PlanetClass.length );
+			
+			p.orb = new Circle2D({
+				centre: new Point2D( ox, oy ),			
+				radius: Math.floor(Math.random()* 20 ),
+				//strokeStyle: "rgba(179,179,179,0.6)",
+				strokeStyle: PlanetClass[pc].c2,
+				fillStyle: PlanetClass[pc].c1
+			});
+			if(p.orb.radius < 6){ p.orb.radius = 6; }
+	
+			distance += 60;
+			
+			return p;
+		});
+		
+	}
+	
 	_G.DrawStars = function(){
 		_G.stars.forEach((star) => { _G.DrawCircle2D(star); } );
+	}
+	
+	_G.DrawPlanets = function(){
+		_G.planets.forEach((planet, idx) => { 
+		
+			planet.location += planet.speed;
+			planet.angle = planet.location * planet.step;
+
+			if(planet.location>359){ 
+				planet.location = 0;
+			}
+			var nx = planet.orbit.centre.x + planet.orbit.radius*Math.cos(planet.angle);
+			var ny = planet.orbit.centre.y + planet.orbit.radius*Math.sin(planet.angle);
+
+			planet.orb.centre.x = nx;
+			planet.orb.centre.y = ny;
+			
+			_G.DrawCircle2D(planet.orbit);
+			_G.DrawCircle2D(planet.orb);
+			
+			_G.planets[idx] = planet;
+		} );
+	}
+	
+	_G.DrawScreens = function(){
+		
+		_G.DrawCircle2D( _G.orbit ); 
+		
+		
+		_G.orbi += 0.25;
+		_G.orbAngle = _G.orbi * _G.orbStep;
+		if(_G.orbi>359){ 
+			_G.orbi = 0;
+		}
+		
+		/* Calculate the new position for the orbiting element */
+		var nx = _G.orbit.centre.x + _G.orbit.radius*Math.cos(_G.orbAngle);
+		var ny = _G.orbit.centre.y + _G.orbit.radius*Math.sin(_G.orbAngle);
+		_G.orb.centre.x = nx;
+		_G.orb.centre.y = ny;
+		
+		_G.DrawCircle2D( _G.orb );
+		
+		_G.mainStar.Draw(_G);
+		
 	}
 	
 	_G.Update = function(){
@@ -160,9 +403,13 @@ function Game(){
 		}
 		_G.ClearCanvas();
 		_G.DrawStars();
+		_G.DrawPlanets();
+		_G.DrawScreens();
 	}
 	
 	_G.Run = function(){
+	
+		_G.state = GameState.Running;
 		_G.Update();
 		
 		requestAnimationFrame(_G.Run);
@@ -173,7 +420,6 @@ var g = new Game();
 
 g.Init();
 g.Run();
-
 
 </script>
 </body></html>
