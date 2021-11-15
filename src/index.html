@@ -187,6 +187,7 @@ var Resource = function(){
 		
 		if(_R.selected){
 			ctx = g.context;
+			
 			ctx.rect(_R.position.x - 6, _R.position.y -6, 28,25);
 			ctx.stroke();
 		}
@@ -307,6 +308,7 @@ function Game(){
 	_G.resourcesRight = [];
 	_G.playerBalance = 0;
 	_G.resourceCount = 20;
+	_G.selectedResource = 0;
 	
 	//Get corners
 	_G.bottomLeft = new Point2D(0,_G.height);
@@ -659,6 +661,7 @@ function Game(){
 		ctx.fillText(txt, txtPosition.x, txtPosition.y);
 		
 	}
+
 	
 	_G.updateAlienShip = function(){
 		
@@ -714,6 +717,20 @@ function Game(){
 		// Do something on click HERE
 		//alert(point.x + ":" + point.y);
 		_G.player.MoveTo(point,true);
+		
+		_G.resourcesLeft.forEach((r) => { 
+
+			if(r.Hit(_G,X,Y)){
+				r.selected = true;
+				
+				if(_G.selectedResource != 0){
+					_G.selectedResource.selected = false;
+				}
+				
+				_G.selectedResource = r;
+			}
+			
+		} );
 	}
 	
 	// capture click event on canvas
