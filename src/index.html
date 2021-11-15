@@ -186,11 +186,45 @@ var Resource = function(){
 		_R.path = g.DrawPath2D(d,_R.fill,_R.stroke);
 		
 		if(_R.selected){
-			ctx = g.context;
-			
-			ctx.rect(_R.position.x - 6, _R.position.y -6, 28,25);
-			ctx.stroke();
+			_R.DrawSelected(g);
 		}
+	}
+	
+	_R.DrawSelected = function(g){
+		ctx = g.context;
+
+		ctx.save();
+		
+		var plt = new Point2D(_R.position.x - 6, _R.position.y -6);
+		var prt = new Point2D(plt.x + 28, plt.y);
+		var prb = new Point2D(plt.x + 28, plt.y + 25);
+		var plb = new Point2D(plt.x, plt.y + 25);
+		
+		ctx.moveTo(plt.x, plt.y);		
+		ctx.lineTo(plt.x+6,plt.y);		
+		ctx.moveTo(plt.x, plt.y);
+		ctx.lineTo(plt.x, plt.y+6);
+		
+		ctx.moveTo(prt.x, prt.y);		
+		ctx.lineTo(prt.x-6,prt.y);		
+		ctx.moveTo(prt.x, prt.y);
+		ctx.lineTo(prt.x, prt.y+6);
+
+		ctx.moveTo(prb.x, prb.y);		
+		ctx.lineTo(prb.x-6,prb.y);		
+		ctx.moveTo(prb.x, prb.y);
+		ctx.lineTo(prb.x, prb.y-6);		
+
+		ctx.moveTo(plb.x, plb.y);		
+		ctx.lineTo(plb.x+6,plb.y);		
+		ctx.moveTo(plb.x, plb.y);
+		ctx.lineTo(plb.x, plb.y-6);
+		
+		ctx.strokeStyle = "#00FF00";				
+		//ctx.rect(_R.position.x - 6, _R.position.y -6, 28,25);
+		ctx.stroke();
+		
+		ctx.restore();
 	}
 	
 	_R.Hit = function(g,x,y){
